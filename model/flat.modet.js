@@ -42,9 +42,13 @@ const flatSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["available", "rented", "maintenance"],
+      enum: ["available", "not available", "maintenance"],
       default: "available",
     },
+
+    teamSize:{
+    type:  String
+    }
   },
   { timestamps: true }
 );

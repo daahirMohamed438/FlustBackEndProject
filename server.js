@@ -5,7 +5,7 @@ const cors = require('cors');
 const userRoutes = require('./router/User.Router'); 
 const ownerRouter = require("./router/owner.router");
 const flatRouter = require("./router/flat.router");
-
+const bookingRouter = require("./router/booking.router");
 const app = express();
 -
 // Middleware
@@ -65,6 +65,9 @@ app.use(baseUrl, userRoutes);
  //
  app.use(baseUrl, ownerRouter);
  app.use(baseUrl, flatRouter);
+
+ app.use(baseUrl, bookingRouter);
+ //
  //
 // Start the server
 const PORT = process.env.PORT || 3000;
