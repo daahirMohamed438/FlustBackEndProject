@@ -1,0 +1,130 @@
+const Flat = require("../model/flat.modet"); // Import Flat model
+const errorHandle = require("../utils/errorHandler");
+
+// Register a new Flat
+exports.registerFlat = errorHandle(async (req, res) => {
+  const { ownerId, flatName, region, district, village, startHour, endHour, price, status } = req.body;
+
+  if (!ownerId || !flatName || !region || !district || !village || !startHour || !endHour || !price) {
+    const error = new Error("All required fields must be provided");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const flat = await Flat.create({
+    ownerId,
+    flatName,
+    region,
+    district,
+    village,
+    startHour,
+    endHour,
+    price,
+    status: status || "available",
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "Flat registered successfully",
+    data: flat,
+  });
+});
+
+// Get a single flat by ID
+exports.getFlatByID = errorHandle(async (req, res) => {
+  const { flatId } = req.body;
+  if (!flatId) {
+    const error = new Error("Flat ID is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const flat = await Flat.findById(flatId);
+  if (!flat) {
+    const error = new Error("Flat not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Flat fetched successfully",
+    data: flat,
+  });
+});
+
+// Get all flats
+exports.getAllFlats = errorHandle(async (req, res) => {
+  const flats = await Flat.find();
+  if (!flats || flats.length === 0) {
+    const error = new Error("No flats found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Flats fetched successfully",
+    data: flats,
+  });
+});
+
+// Update a flat
+exports.updateFlat = errorHandle(async (req, res) => {
+  const { flatId, flatName, region, district, village, startHour, endHour, price, status } = req.body;
+
+  if (!flatId) {
+    const error = new Error("Flat ID is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const flat = await Flat.findById(flatId);
+  if (!flat) {
+    const error = new Error("Flat not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Update fields
+  flat.flatName = flatName || flat.flatName;
+  flat.region = region || flat.region;
+  flat.district = district || flat.district;
+  flat.village = village || flat.village;
+  flat.startHour = startHour || flat.startHour;
+  flat.endHour = endHour || flat.endHour;
+  flat.price = price || flat.price;
+  flat.status = status || flat.status;
+
+  await flat.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Flat updated successfully",
+    data: flat,
+  });
+});
+
+// Delete a flat
+exports.deleteFlat = errorHandle(async (req, res) => {
+  const { flatId } = req.body;
+  if (!flatId) {
+    const error = new Error("Flat ID is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const flat = await Flat.findById(flatId);
+  if (!flat) {
+    const error = new Error("Flat not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  await Flat.findByIdAndDelete(flatId);
+
+  res.status(200).json({
+    success: true,
+    message: "Flat deleted successfully",
+  });
+});
