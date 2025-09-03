@@ -54,8 +54,26 @@ exports.getFlatByID = errorHandle(async (req, res) => {
 });
 
 // Get all flats
+// exports.getAllFlats = errorHandle(async (req, res) => {
+//   const flats = await Flat.find();
+//   if (!flats || flats.length === 0) {
+//     const error = new Error("No flats found");
+//     error.statusCode = 404;
+//     throw error;
+//   }
+
+//   res.status(200).json({
+//     success: true,
+//     message: "Flats fetched successfully",
+//     data: flats,
+//   });
+// });
+
+// Get all flats sorted by availability
 exports.getAllFlats = errorHandle(async (req, res) => {
-  const flats = await Flat.find();
+  // Sort: available flats first, then others
+  const flats = await Flat.find().sort({ status: 1 }); // 1 = ascending
+
   if (!flats || flats.length === 0) {
     const error = new Error("No flats found");
     error.statusCode = 404;
@@ -68,6 +86,7 @@ exports.getAllFlats = errorHandle(async (req, res) => {
     data: flats,
   });
 });
+
 
 // Update a flat
 exports.updateFlat = errorHandle(async (req, res) => {
@@ -126,5 +145,28 @@ exports.deleteFlat = errorHandle(async (req, res) => {
   res.status(200).json({
     success: true,
     message: "Flat deleted successfully",
+  });
+});
+
+
+
+// only availbe
+
+// Get all available flats
+exports.getAvailableFlats = errorHandle(async (req, res) => {
+  const availableFlats = await Flat.find({ status: "available" });
+
+  if (!availableFlats || availableFlats.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: "No available flats found",
+      count: 0,
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    count: availableFlats.length, // total number of available flats
+    data: availableFlats,
   });
 });

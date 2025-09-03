@@ -16,4 +16,4 @@ router.delete("/deleteUser", deleteUser);
 router.put("/updateUser", updateUser);
 router.get("/geteUser", getUser);
 router.get("/getAllUsers", getAllUsers);
-module.exports = router; // ✅ Make sure you export the router directly
+module.exports = router;  

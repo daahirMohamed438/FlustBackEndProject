@@ -6,6 +6,10 @@ const userRoutes = require('./router/User.Router');
 const ownerRouter = require("./router/owner.router");
 const flatRouter = require("./router/flat.router");
 const bookingRouter = require("./router/booking.router");
+const historyRouter = require("./router/history.router");
+
+const incomeyRouter = require("./router/income.router");
+
 const app = express();
 -
 // Middleware
@@ -53,13 +57,13 @@ const baseUrl = '/URLFluster'; // process.env.BASE_URL ||
 //   .catch(err => console.error('MongoDB connection error:', err));
 
 
-// ✅ Direct MongoDB connection (no .env)
+//Direct MongoDB connection (no .env)
 mongoose.connect("mongodb://127.0.0.1:27017/flustelDB", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log("✅ MongoDB connected"))
-.catch(err => console.error("❌ MongoDB connection error:", err));
+.then(() => console.log(" MongoDB connected"))
+.catch(err => console.error(" MongoDB connection error:", err));
 // Mount user routes under the base URL
 app.use(baseUrl, userRoutes);
  //
@@ -67,9 +71,13 @@ app.use(baseUrl, userRoutes);
  app.use(baseUrl, flatRouter);
 
  app.use(baseUrl, bookingRouter);
+ app.use(baseUrl, historyRouter);
+ app.use(baseUrl, incomeyRouter);
+ 
  //
  //
 // Start the server
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`${process.env.URL_SERVER || 'Server'} running on ${baseUrl} at http://localhost:${PORT}`);

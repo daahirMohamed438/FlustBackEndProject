@@ -17,11 +17,11 @@ const bookingSchema = new mongoose.Schema(
       ref: "Owner",
       required: true,
     },
-    startDate: {
+    startTime: {
       type: Date,
       required: true,
     },
-    endDate: {
+    endTime: {
       type: Date,
       required: true,
     },
@@ -32,6 +32,24 @@ const bookingSchema = new mongoose.Schema(
     },
     price: {
       type: Number,
+      required: true,
+    },
+
+    captanNumber:{
+      type: Number,
+      required: true,
+    },
+
+    captanName:{
+      type: String,
+      required: true,
+    },
+    priceNumber:{
+      type: Number,
+      required: true,
+    },
+    notes: {
+      type: String,
       required: true,
     },
   },

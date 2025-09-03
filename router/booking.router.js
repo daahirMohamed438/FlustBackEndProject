@@ -5,7 +5,9 @@ const {
   getAllBookings,
   updateBooking,
   deleteBooking,
-} = require("../controller/booking.controller");
+  cancelBooking
+}
+ = require("../controller/booking.controller");
 
 const router = express.Router();
 
@@ -23,5 +25,6 @@ router.put("/updateBooking", updateBooking);
 
 // Delete a booking
 router.delete("/deleteBooking", deleteBooking);
+router.put("/cancelBooking", cancelBooking);
 
 module.exports = router;

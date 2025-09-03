@@ -1,37 +1,43 @@
 const userModel = require("../model/User.model");
 const errorHandle = require("../utils/errorHandler");
 const bcrypt = require("bcryptjs");
- exports.registerarionUser = errorHandle(async (req, res) => {
-  //Input Validation
+ 
+exports.registerarionUser = errorHandle(async (req, res) => {
   const { name, email, password } = req.body;
+
   if (!name || !email || !password) {
     const error = new Error("All fields are required");
     error.statusCode = 400;
     throw error;
   }
 
-  //Check for Existing Email
-  const exitEmail = await userModel.findOne({ email });
-  if (exitEmail) {
-    const error = new Error("All ready exit this Email");
-    error.statusCode = 404;
+  // Check for existing email
+  const existingUser = await userModel.findOne({ email });
+  if (existingUser) {
+    const error = new Error("Email already exists");
+    error.statusCode = 400;
     throw error;
   }
 
-  const hashPassword = await bcrypt.hash(password, 10);
-  await userModel.create({
+  // Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Create user
+  const newUser = await User.create({
     name,
     email,
-    password,
-    hashPassword,
+    password: hashedPassword,
   });
 
-  //Response to Client
+  //  Respond with created user info (including userId)
   res.status(201).json({
     status: true,
-    message: "successfull to resgitereation",
+    message: "Successfully registered",
     data: {
-      data: userModel,
+      userId: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      createdAt: newUser.createdAt,
     },
   });
 });
@@ -130,7 +136,7 @@ exports.updateUser = errorHandle(async (req, res) => {
 
 // exports.deleteUser = errorHandle(async (req, res) => {
 //   // input
-//     const { userId } = req.body; // ✅ now userId is a string
+//     const { userId } = req.body; //  now userId is a string
 
 //   console.log("Received userId:", userId)
 
