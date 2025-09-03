@@ -7,3 +7,5 @@ node_modules/
 .env.*.local   # ignore other env variants, like .env.development.local
 .json
 utils/*.json
+utils/flusteruserandowner-firebase-adminsdk-fbsvc-f98e6d20b9.json
+.env
