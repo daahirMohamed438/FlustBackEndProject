@@ -5,7 +5,7 @@ const sendMonthlyDiscountNotification = require("../utils/sendnotification"); //
 
 exports.getDailyIncomeOwner = errorHandle(async (req, res) => {
     let { startDate, endDate } = req.body;
-  
+
     const now = new Date();
     if (!startDate) {
       startDate = new Date();
@@ -40,9 +40,7 @@ exports.getDailyIncomeOwner = errorHandle(async (req, res) => {
     );
   const totalIncomeWithCurrency = "$" + totalIncome; // Using $ as example
 // Call notification function here
-// await sendMonthlyDiscountNotification;
-
-  //  Call the notification function here
+ 
   await sendMonthlyDiscountNotification();
     res.status(200).json({
       success: true,
