@@ -5,10 +5,12 @@ const cors = require('cors');
 const userRoutes = require('./router/User.Router'); 
 const ownerRouter = require("./router/owner.router");
 const flatRouter = require("./router/flat.router");
+const favoriteRouter = require("./router/favorite.router");
 const bookingRouter = require("./router/booking.router");
 const historyRouter = require("./router/history.router");
 
 const incomeyRouter = require("./router/income.router");
+const ratingRouter = require("./router/rating.router");
 
 const app = express();
 -
@@ -73,6 +75,8 @@ app.use(baseUrl, userRoutes);
  app.use(baseUrl, bookingRouter);
  app.use(baseUrl, historyRouter);
  app.use(baseUrl, incomeyRouter);
+ app.use(baseUrl, favoriteRouter);
+ app.use(baseUrl, ratingRouter);
  
  //
  //

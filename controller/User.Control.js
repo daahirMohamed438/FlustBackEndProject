@@ -1,6 +1,7 @@
 const userModel = require("../model/User.model");
 const errorHandle = require("../utils/errorHandler");
 const bcrypt = require("bcryptjs");
+// Favorites moved to dedicated controller
  
 exports.registerarionUser = errorHandle(async (req, res) => {
   const { name, email, password } = req.body;
@@ -130,6 +131,44 @@ exports.updateUser = errorHandle(async (req, res) => {
       userId: user._id,
       name: user.name,
       password: user.password,
+    },
+  });
+});
+
+// Update personal information (partial updates)
+exports.updateUserProfile = errorHandle(async (req, res) => {
+  const { userId, name, email, phone, avatarUrl } = req.body;
+
+  if (!userId) {
+    const error = new Error("User ID is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await userModel.findById(userId);
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (name !== undefined) user.name = name;
+  if (email !== undefined) user.email = email;
+  if (phone !== undefined) user.phone = phone;
+  if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Profile updated successfully",
+    data: {
+      userId: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      avatarUrl: user.avatarUrl,
+      updatedAt: user.updatedAt,
     },
   });
 });

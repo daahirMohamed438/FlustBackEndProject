@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters long"],
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    avatarUrl: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
@@ -34,4 +42,6 @@ const  Owner = mongoose.model("Owner", userSchema);
 // Other files can import { User, Owner } and use them to interact with MongoDB
 
 
-module.exports = { User, Owner };
+module.exports =  User  
+  
+// };

@@ -46,6 +46,19 @@ const flatSchema = new mongoose.Schema(
       default: "available",
     },
 
+    // Ratings summary
+    ratingAverage: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+    ratingCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     teamSize:{
     type:  String
     }

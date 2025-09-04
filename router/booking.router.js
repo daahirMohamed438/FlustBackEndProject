@@ -5,7 +5,11 @@ const {
   getAllBookings,
   updateBooking,
   deleteBooking,
-  cancelBooking
+  cancelBooking,
+  bookingStatusByUser,
+  historyBookingUser,
+ 
+  // getFavorites
 }
  = require("../controller/booking.controller");
 
@@ -26,5 +30,10 @@ router.put("/updateBooking", updateBooking);
 // Delete a booking
 router.delete("/deleteBooking", deleteBooking);
 router.put("/cancelBooking", cancelBooking);
+router.post("/bookingStatus", bookingStatusByUser);
+router.post("/historyBookingUser", historyBookingUser);
+// router.post("/addFaorite", addFaorite);
+// router.post("/getFavorites", getFavorites);
+//
 
 module.exports = router;
