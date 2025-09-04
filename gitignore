@@ -9,3 +9,25 @@ node_modules/
 utils/*.json
 utils/flusteruserandowner-firebase-adminsdk-fbsvc-f98e6d20b9.json
 .env
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+
+# Sensitive key files
+*.pem
+*.p12
+*.key
+*.crt
+*.pfx

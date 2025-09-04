@@ -18,8 +18,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());  
 
-// Set base URL from environment variable or default to '/api'
-const baseUrl = '/URLFluster'; // process.env.BASE_URL ||
+// Set base URL from environment variable or default
+const baseUrl = process.env.BASE_URL || '/URLFluster';
 
 // Connect to MongoDB
 // mongoose.connect(process.env.MONGO_URI, {
@@ -59,8 +59,8 @@ const baseUrl = '/URLFluster'; // process.env.BASE_URL ||
 //   .catch(err => console.error('MongoDB connection error:', err));
 
 
-//Direct MongoDB connection (no .env)
-mongoose.connect("mongodb://127.0.0.1:27017/flustelDB", {
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/flustelDB", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
