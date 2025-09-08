@@ -1,27 +1,19 @@
 const errorHandle = require("../utils/errorHandler");
 const Favorite = require("../model/favorites.FootSel.model");
 const User = require("../model/User.model");
-const Flat = require("../model/flat.modet");
-
+const Flat = require("../model/hoursAvailableFootSel.model");
+ 
+// ✅ Add Favorite
 exports.addFavorite = errorHandle(async (req, res) => {
-  const { userId, flatId } = req.body;
+  const { footSelId, flatId } = req.body;
 
-  if (!userId || !flatId) {
-    const error = new Error("userId and flatId are required");
+  if (!footSelId || !flatId) {
+    const error = new Error("footSelId and flatId are required");
     error.statusCode = 400;
     throw error;
   }
 
-  const [user, flat] = await Promise.all([
-    User.findById(userId),
-    Flat.findById(flatId),
-  ]);
-
-  if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
-  }
+  const flat = await Flat.findById(flatId);
   if (!flat) {
     const error = new Error("Flat not found");
     error.statusCode = 404;
@@ -29,8 +21,8 @@ exports.addFavorite = errorHandle(async (req, res) => {
   }
 
   const favorite = await Favorite.findOneAndUpdate(
-    { userId, flatId },
-    { $setOnInsert: { userId, flatId } },
+    { footSelId, flatId },
+    { $setOnInsert: { footSelId, flatId } },
     { upsert: true, new: true }
   );
 
@@ -41,16 +33,17 @@ exports.addFavorite = errorHandle(async (req, res) => {
   });
 });
 
+// ✅ Remove Favorite
 exports.removeFavorite = errorHandle(async (req, res) => {
-  const { userId, flatId } = req.body;
+  const { footSelId, flatId } = req.body;
 
-  if (!userId || !flatId) {
-    const error = new Error("userId and flatId are required");
+  if (!footSelId || !flatId) {
+    const error = new Error("footSelId and flatId are required");
     error.statusCode = 400;
     throw error;
   }
 
-  const deleted = await Favorite.findOneAndDelete({ userId, flatId });
+  const deleted = await Favorite.findOneAndDelete({ footSelId, flatId });
   if (!deleted) {
     const error = new Error("Favorite not found");
     error.statusCode = 404;
@@ -63,16 +56,18 @@ exports.removeFavorite = errorHandle(async (req, res) => {
   });
 });
 
+// ✅ List Favorites
 exports.listFavorites = errorHandle(async (req, res) => {
-  const { userId } = req.body;
+  const { footSelId } = req.body;
 
-  if (!userId) {
-    const error = new Error("userId is required");
+  if (!footSelId) {
+    const error = new Error("footSelId is required");
     error.statusCode = 400;
     throw error;
   }
 
-  const favorites = await Favorite.find({ userId }).populate({ path: "flatId", model: "Flat" });
+  const favorites = await Favorite.find({ footSelId })
+    .populate({ path: "flatId", model: "Flat" });
 
   res.status(200).json({
     success: true,

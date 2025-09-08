@@ -28,6 +28,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    currentToken: { type: String } // <-- add this
+
   },
   { timestamps: true }
 );
@@ -45,3 +47,5 @@ const  Owner = mongoose.model("Owner", userSchema);
 module.exports =  User  
   
 // };
+
+

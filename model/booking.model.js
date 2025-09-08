@@ -7,16 +7,7 @@ const bookingSchema = new mongoose.Schema(
       ref: "Flat",
       required: true,
     },
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    ownerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Owner",
-      required: true,
-    },
+ 
     startTime: {
       type: Date,
       required: true,

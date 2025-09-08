@@ -61,8 +61,14 @@ const flatSchema = new mongoose.Schema(
 
     teamSize:{
     type:  String
-    }
+    },
+
+    hrAvailableId:{
+      type:  String
+      }
   },
+ 
+  
   { timestamps: true }
 );
 

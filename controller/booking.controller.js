@@ -5,10 +5,125 @@ const errorHandle = require("../utils/errorHandler");
 const Flat = require("../model/flat.modet");
 const admin = require("../utils/firebase");
 const modelfavorites = require("../model/favorites.FootSel.model");
-
+const HoursAvailable = require("../model/hoursAvailableFootSel.model")
 const User = require("../model/User.model");
+
+
+exports.createBooking = errorHandle(async (req, res) => {
+  const {
+    flatId,
+    startTime,
+    endTime,
+    price,
+    userId,
+    captanNumber,
+    captanName,
+    priceNumber,
+    notes,
+  } = req.body;
+
+  //   Validate required fields
+  if (
+    !flatId ||
+    !startTime ||
+    !endTime ||
+    !price ||
+    !userId ||
+    !captanNumber ||
+    !captanName ||
+    !priceNumber ||
+    !notes
+  ) {
+    const error = new Error("All required fields must be provided");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  //   Check if hours available for this flat
+  const availableHours = await HoursAvailable.findById(flatId);
+  if (!availableHours) {
+    const error = new Error("Selected hours not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (availableHours.status === "unavailable") {
+    const error = new Error("These hours are already booked");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  //  Derive owner from the flat linked to these hours
+  const flat = await Flat.findById(availableHours.footSelId);
+  if (!flat) {
+    const error = new Error("Related flat not found for selected hours");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  //  Create new booking
+  const booking = await Booking.create({
+    flatId,
+    userId,
+    ownerId: flat.ownerId,
+    startTime,
+    endTime,
+    price,
+    captanNumber,
+    captanName,
+    priceNumber,
+    notes,
+    status: "pending", // default
+  });
+
+  //  Update availability
+  availableHours.status = "unavailable";
+  await availableHours.save();
+
+  //   Send response
+  res.status(201).json({
+    success: true,
+    message: "Booking created successfully",
+    teamInformation: booking,
+    footSelInformation: availableHours,
+  });
+});
+
 exports.confirmBooking = errorHandle(async (req, res) => {
-  const { bookingId, } = req.body;
+  const { bookingId } = req.body;
+
+  if (!bookingId) {
+    const error = new Error("Booking ID is required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const booking = await Booking.findById(bookingId);
+  if (!booking) {
+    const error = new Error("Booking not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (booking.status.trim().toLowerCase() !== "pending") {
+    const error = new Error("This booking cannot be confirmed");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  booking.status = "confirmed";
+  await booking.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Booking confirmed successfully",
+    // data: booking,
+  });
+});
+
+ // User cancels a booking
+exports.cancelBooking = errorHandle(async (req, res) => {
+  const { bookingId } = req.body;
 
   if (!bookingId) {
     const error = new Error("Booking ID is required");
@@ -24,33 +139,44 @@ exports.confirmBooking = errorHandle(async (req, res) => {
     throw error;
   }
 
-      // Prevent confirming if already confirmed or canceled
-
-   if (booking.status !== "pending") {
-    const error = new Error("This booking cannot be confirmed");
+  //  Prevent canceling if already canceled
+  if (booking.status === "canceled") {
+    const error = new Error("This booking is already canceled");
     error.statusCode = 400;
     throw error;
   }
-
-  booking.status = "confirmed";
+  booking.status = "canceled";
   await booking.save();
-// 1️⃣ Find the  footSel
-  const FootselId = await Flat.findById(bookingId.flatId)
-  if (!FootselId) {
-    const error = new Error("Booking not found");
-    error.statusCode = 404;
-    throw error;
-  }
 
-  FootselId.status = "not available"
-  FootselId.status
-  await FootselId.save()
+   // 3️⃣ Update related HoursAvailable status back to "available"
+   const availableHours = await HoursAvailable.findById(booking.flatId);
+   if (availableHours) {
+     availableHours.status = "available";
+     await availableHours.save();
+   }
+ 
+
+  //   Respond
+  // res.status(200).json({
+  //   success: true,
+  //   message: "Booking canceled successfully, flat is now available",
+  //   data: booking,
+  // });
   res.status(200).json({
     success: true,
-    message: "Booking Status",
-    status: booking.status,
+    message: "Booking canceled successfully, flat is now available",
+    data: booking,
+    hoursInfo: availableHours,
   });
 });
+
+ 
+
+
+
+
+
+
 
 // User a booking status
 exports.bookingStatusByUser = errorHandle(async (req, res) => {
@@ -74,144 +200,6 @@ exports.bookingStatusByUser = errorHandle(async (req, res) => {
     success: true,
     message: "Booking Status",
     status: booking.status,
-  });
-});
-
-// User cancels a booking
-exports.cancelBooking = errorHandle(async (req, res) => {
-  const { bookingId } = req.body;
-
-  if (!bookingId) {
-    const error = new Error("Booking ID is required");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  // 1️⃣ Find the booking
-  const booking = await Booking.findById(bookingId);
-  if (!booking) {
-    const error = new Error("Booking not found");
-    error.statusCode = 404;
-    throw error;
-  }
-
-  //   Update booking status to canceled
-  booking.status = "canceled";
-  await booking.save();
-
-  // Update related flat status to available
-  const flat = await Flat.findById(booking.flatId);
-  if (flat) {
-    flat.status = "available";
-    await flat.save();
-  }
-
-  //   Respond
-  res.status(200).json({
-    success: true,
-    message: "Booking canceled successfully, flat is now available",
-    data: booking,
-  });
-});
-
-// Create a new booking
-exports.createBooking = errorHandle(async (req, res) => {
-  const {
-    flatId,
-    userId,
-    ownerId,
-    startTime,
-    endTime,
-    price,
-    captanNumber,
-    captanName,
-    priceNumber,
-    notes,
-    fcmToken,
-  } = req.body;
-
-  // Check required fields
-  if (
-    !flatId ||
-    !userId ||
-    !ownerId ||
-    !startTime ||
-    !endTime ||
-    !price ||
-    !captanNumber ||
-    !captanName ||
-    !priceNumber
-  ) {
-    const error = new Error("All required fields must be provided");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  // Check if flat exists
-  const flat = await Flat.findById(flatId);
-  if (!flat) {
-    const error = new Error("Flat not found");
-    error.statusCode = 404;
-    throw error;
-  }
-
-  // Check if flat is available
-  if (flat.status === "not available") {
-    const error = new Error("This flat is not available for booking");
-    error.statusCode = 400;
-    throw error;
-  }
-
-  // Create booking
-  const booking = await Booking.create({
-    flatId,
-    userId,
-    ownerId,
-    startTime,
-    endTime,
-    price,
-    captanNumber,
-    captanName,
-    priceNumber,
-    notes: notes || "", // optional, default empty string
-    status: "pending",
-  });
-
-  // Mark flat as not available
-  flat.status = "not available";
-  await flat.save();
-
-  //   FCM Notification (to be implemented in the future)
-  // This block will send a push notification to the user's device when a new booking is created.
-  // - `fcmToken` is the device token sent from the client app.
-  // - `message.notification` contains the title and body shown in the notification.
-  // - `message.data` can include additional info (like bookingId and flatId).
-  // Currently commented out; will enable once FCM integration is complete.
-  // if (fcmToken) {
-  //   const message = {
-  //     token: fcmToken,
-  //     notification: {
-  //       title: "New Booking Created 🎉",
-  //       body: `Your booking for ${flat.name} is pending approval.`,
-  //     },
-  //     data: {
-  //       bookingId: booking._id.toString(),
-  //       flatId: flat._id.toString(),
-  //     },
-  //   };
-
-  //   try {
-  //     await admin.messaging().send(message);
-  //     console.log("Notification sent successfully");
-  //   } catch (err) {
-  //     console.error("Error sending notification:", err);
-  //   }
-  // }
-
-  res.status(201).json({
-    success: true,
-    message: "Booking created successfully",
-    data: booking,
   });
 });
 
@@ -318,39 +306,6 @@ exports.deleteBooking = errorHandle(async (req, res) => {
 });
 
  
-// exports.historyBookingUser = errorHandle(async (req, res) => {
-//   const { userId, FootselId } = req.body;
-
-//   // Validate input
-//   if (!userId || !FootselId) {
-//     const error = new Error("User ID and Footsel ID are required");
-//     error.statusCode = 400;
-//     throw error;
-//   }
-
-//   // Fetch bookings for the user and flat
-//   const bookings = await Booking.find({
-//     userId,
-//     flatId: FootselId,
-//   })
-//     .populate("flatId") // Populate flat details
-//     .populate("userId") // Populate user details
-//     // .populate("ownerId"); // Populate owner details
-
-//   // Check if bookings exist
-//   if (!bookings || bookings.length === 0) {
-//     const error = new Error("No bookings found for this user and flat");
-//     error.statusCode = 404;
-//     throw error;
-//   }
-
-//   // Respond with the bookings
-//   res.status(200).json({
-//     success: true,
-//     message: "User booking history fetched successfully",
-//     data: bookings,
-//   });
-// });
 
 exports.historyBookingUser = errorHandle(async (req, res) => {
   const { userId } = req.body;
@@ -468,52 +423,4 @@ exports.historyBookingUser = errorHandle(async (req, res) => {
 });
 
 
-// exports.addFaorite = errorHandle(async(req,res)=>{
-//   const { userId, FootselId } = req.body;
-//   // Validate input
-//   if (!userId ||!FootselId) {
-//     const error = new Error("User ID is required");
-//     error.statusCode = 400;
-//     throw error;
-//   }
-
-//   const favorites = await modelfavorites.create({
-//     userId,
-//     FootselId
-//   })
-
-
-//   // Respond with the bookings
-//   res.status(200).json({
-//     success: true,
-//     message: "User booking history fetched successfully",
-//     // data: bookings,
-//   });
-
-// })
-
-
-// exports.getFavorites = errorHandle(async (req, res) => {
-//   const { userId } = req.body;
-
-//   if (!userId) {
-//     const error = new Error("User ID is required");
-//     error.statusCode = 400;
-//     throw error;
-//   }
-
-//   // const user = await User.findById(userId).populate("favorites");
-//   const user = await User.findById(userId).populate('favorites').exec();
-
-//   if (!user) {
-//     const error = new Error("User not found");
-//     error.statusCode = 404;
-//     throw error;
-//   }
-
-//   res.status(200).json({
-//     success: true,
-//     message: "User favorites fetched successfully",
-//     data: user.favorites,
-//   });
-// });
+ 
