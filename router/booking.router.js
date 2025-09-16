@@ -8,7 +8,8 @@ const {
   cancelBooking,
   bookingStatusByUser,
   historyBookingUser,
-  confirmBooking
+  confirmBooking,
+  allJoinTables
  
   // getFavorites
 }
@@ -34,9 +35,10 @@ router.get("/getAllBookings",
    getAllBookings);
 
 // Update a booking (e.g., status)
-router.put("/updateBooking",
-  //  requireUserId,
-   updateBooking);
+router.put("/updateBooking",updateBooking);
+router.post("/allJoinTables",allJoinTables);
+
+   //allJoinTables
 
 // Delete a booking
 router.delete("/deleteBooking",

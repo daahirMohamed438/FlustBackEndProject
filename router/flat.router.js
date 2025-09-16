@@ -5,12 +5,12 @@ const {
   getAllFlats,
   updateFlat,
   deleteFlat
-} = require("../controller/Flat.controller"); // Adjust path if needed
-
+} = require("../controller/flat.controller");
+const authMiddlewareBody = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Register a new flat
-router.post("/registerFlat", registerFlat);
+router.post("/registerFlat", authMiddlewareBody, registerFlat);
 
 // Get a single flat by ID
 router.get("/getFlatByID", getFlatByID);

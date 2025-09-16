@@ -1,6 +1,7 @@
 const userModel = require("../model/User.model");
 const errorHandle = require("../utils/errorHandler");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken"); // <-- add this
 // Favorites moved to dedicated controller
  
 exports.registerarionUser = errorHandle(async (req, res) => {
@@ -24,12 +25,22 @@ exports.registerarionUser = errorHandle(async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   // Create user
-  const newUser = await User.create({
+  const newUser = await userModel.create({
     name,
     email,
     password: hashedPassword,
   });
 
+
+  // Generate JWT token
+  const token = jwt.sign(
+    { id: newUser._id, email: newUser.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+    // Save token in currentToken field
+    newUser.currentToken = token;
+    await newUser.save();
   //  Respond with created user info (including userId)
   res.status(201).json({
     status: true,
@@ -39,12 +50,12 @@ exports.registerarionUser = errorHandle(async (req, res) => {
       name: newUser.name,
       email: newUser.email,
       createdAt: newUser.createdAt,
+      // token
     },
   });
 });
 
 exports.LoginUser = errorHandle(async (req, res) => {
-  //Input Validation
   const { email, password } = req.body;
   if (!email || !password) {
     const error = new Error("Email and password are required");
@@ -59,27 +70,20 @@ exports.LoginUser = errorHandle(async (req, res) => {
     throw error;
   }
 
-  const isMutchPasswod = await bcrypt.compare(password, user.hashPassword);
+  const isMutchPasswod = await bcrypt.compare(password, user.password);
   if (!isMutchPasswod) {
     const error = new Error("Invalid credentials");
     error.statusCode = 401;
     throw error;
   }
-
-  // Calculate user rating from reviews
-  const reviews = await reviewModel.find({ userId: user._id });
-  let averageRating = 0;
-  let reviewCount = 0;
-  
-  if (reviews.length > 0) {
-    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-    averageRating = totalRating / reviews.length;
-    reviewCount = reviews.length;
-  }
-
-  // Update user's rating and review count
-  user.rating = Math.round(averageRating * 10) / 10; // Round to 1 decimal place
-  user.reviewCount = reviewCount;
+  // Print old token
+  console.log("Old token:", user.currentToken);
+    // Generate new token
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET);
+  // Print new token
+  console.log("New token:", token);
+  // Replace old token
+  user.currentToken = token;
   await user.save();
 
   res.status(200).json({
@@ -89,13 +93,13 @@ exports.LoginUser = errorHandle(async (req, res) => {
       userId: user._id,
       name: user.name,
       email: user.email,
-      rating: user.rating,
-      reviewCount: user.reviewCount,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    }
+      updatedAt: user.updatedAt,
+      token // include token in response will be delete response
+    },
   });
 });
+
 
 exports.updateUser = errorHandle(async (req, res) => {
   const { userId, name, email, password } = req.body;

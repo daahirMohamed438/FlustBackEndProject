@@ -231,20 +231,64 @@ exports.getBookingById = errorHandle(async (req, res) => {
   });
 });
 
+
+
 // Get all bookings
-exports.getAllBookings = errorHandle(async (req, res) => {
+// exports.getAllBookings = errorHandle(async (req, res) => {
   
-  const bookings = await Booking.find()
-    // .populate("flatId")
-    // .populate("userId")
-    // .populate("ownerId");
+//   const bookings = await Booking.find()
+//     // .populate("flatId")
+//     // .populate("userId")
+//     // .populate("ownerId");
+
+//   if (!bookings || bookings.length === 0) {
+//     const error = new Error("No bookings found");
+//     error.statusCode = 404;
+//     throw error;
+//   }
+
+
+//   res.status(200).json({
+//     success: true,
+//     message: "Bookings fetched successfully",
+//     data: bookings,
+//   });
+// });
+// aggregation
+exports.getAllBookings = errorHandle(async (req, res) => {
+  const bookings = await Booking.aggregate([
+    // 1. Join Flats
+    {
+      $lookup: {
+        from: "bookings",           // collection name
+        localField: "flatId",    // field in Booking
+        foreignField: "_id",     // field in Flats
+        as: "flatDetails"        // output array name
+      }
+    },
+    // 2. Flatten the array
+    { $unwind: { path: "$flatDetails", preserveNullAndEmptyArrays: true } },
+
+    // 3. Optionally select fields
+    {
+      $project: {
+
+        _id: 1,
+        // startTime: 1,
+        // endTime: 1,
+        status: 1,
+        // price: 1,
+        // flatDetails: { name: 1, location: 1, price: 1 }
+      }
+    }
+    
+  ]);
 
   if (!bookings || bookings.length === 0) {
     const error = new Error("No bookings found");
     error.statusCode = 404;
     throw error;
   }
-
 
   res.status(200).json({
     success: true,
@@ -424,3 +468,71 @@ exports.historyBookingUser = errorHandle(async (req, res) => {
 
 
  
+
+exports.allJoinTables = errorHandle(async (req, res) => {
+  const allTables = await Booking.aggregate([
+    // 1. Join Flats
+    {
+      $lookup: {
+        from: "flats",
+        localField: "flatId",
+        foreignField: "_id",
+        as: "flatDetails"
+      }
+    },
+    { $unwind: { path: "$flatDetails", preserveNullAndEmptyArrays: true } },
+
+    // 2. Join Owners via flatDetails.ownerId
+    {
+      $lookup: {
+        from: "owners",
+        localField: "flatDetails.ownerId", // note: join via the Flat's ownerId
+        foreignField: "_id",
+        as: "ownerDetails"
+      }
+    },
+    { $unwind: { path: "$ownerDetails", preserveNullAndEmptyArrays: true } },
+
+    // 3. Optionally join HoursAvailable
+    {
+      $lookup: {
+        from: "hoursavailables",
+        localField: "flatId",
+        foreignField: "footSelId",
+        as: "hoursDetails"
+      }
+    },
+
+    // 4. Project only the needed fields
+    {
+      $project: {
+        _id: 1,
+        startTime: 1,
+        endTime: 1,
+        status: 1,
+        price: 1,
+
+        "flatDetails._id": 1,
+        "flatDetails.flatName": 1,
+        "flatDetails.region": 1,
+        "flatDetails.district": 1,
+
+        "hoursDetails.startHours": 1,
+        "hoursDetails.endHours": 1,
+        "hoursDetails.price": 1,
+        "hoursDetails.status": 1,
+
+        "ownerDetails.name": 1,
+        "ownerDetails.email": 1
+      }
+    }
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: "All tables joined successfully",
+    data: allTables,
+  });
+});
+
+
