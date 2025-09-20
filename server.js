@@ -12,6 +12,7 @@ const historyRouter = require("./router/history.router");
 const incomeyRouter = require("./router/income.router");
 const ratingRouter = require("./router/rating.router");
 const hoursAvailableRouter = require("./router/hoursAvailable.router");
+const imageRouter = require("./router/image.router");
 const app = express();
 -
 // Middleware
@@ -78,6 +79,8 @@ app.use(baseUrl, userRoutes);
  app.use(baseUrl, favoriteRouter);
  app.use(baseUrl, ratingRouter);
  app.use(baseUrl, hoursAvailableRouter);
+ app.use(baseUrl, imageRouter);
+
  
  //
  //

@@ -36,7 +36,7 @@ exports.registerarionUser = errorHandle(async (req, res) => {
   const token = jwt.sign(
     { id: newUser._id, email: newUser.email },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+  
   );
     // Save token in currentToken field
     newUser.currentToken = token;
@@ -79,7 +79,8 @@ exports.LoginUser = errorHandle(async (req, res) => {
   // Print old token
   console.log("Old token:", user.currentToken);
     // Generate new token
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id, email: user.email },
+       process.env.JWT_SECRET);
   // Print new token
   console.log("New token:", token);
   // Replace old token

@@ -4,7 +4,8 @@ const User = require("../model/User.model");
 const Flat = require("../model/hoursAvailableFootSel.model");
  
 // ✅ Add Favorite
-exports.addFavorite = errorHandle(async (req, res) => {
+exports.addFavorite = errorHandle(async (req, res) => 
+  {
   const { footSelId, flatId } = req.body;
 
   if (!footSelId || !flatId) {
@@ -26,12 +27,17 @@ exports.addFavorite = errorHandle(async (req, res) => {
     { upsert: true, new: true }
   );
 
-  res.status(201).json({
+  res.status(201).json(
+    {
     success: true,
     message: "Flat added to favorites",
     data: favorite,
   });
 });
+
+
+
+
 
 // ✅ Remove Favorite
 exports.removeFavorite = errorHandle(async (req, res) => {

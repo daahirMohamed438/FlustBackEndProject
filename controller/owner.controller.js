@@ -1,3 +1,5 @@
+const jwt = require("jsonwebtoken");
+
 const { Owner } = require("../model/User.model");
 const errorHandle = require("../utils/errorHandler");
 const bcrypt = require("bcryptjs");
@@ -58,6 +60,10 @@ exports.loginOwner = errorHandle(async (req, res) => {
     throw error;
   }
 
+     const token = jwt.sign({ id: owner._id, email: owner.email },
+         process.env.JWT_SECRET);
+         owner.currentToken = token
+         await owner.save()
   res.status(200).json({
     success: true,
     message: "Owner logged in successfully",
@@ -65,6 +71,7 @@ exports.loginOwner = errorHandle(async (req, res) => {
       ownerId: owner._id,
       name: owner.name,
       email: owner.email,
+      token
     },
   });
 });

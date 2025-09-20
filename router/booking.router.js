@@ -18,10 +18,12 @@ const {
 
 const router = express.Router();
 const requireUserId = require("../middleware/requireUserId");
+const { authMiddlewareBody } = require("../middleware/authMiddleware");
 
 // Create a new booking
 router.post("/createBooking",
   //  requireUserId, 
+  authMiddlewareBody,
   createBooking);
 
 // Get a single booking by ID

@@ -45,7 +45,12 @@ const  Owner = mongoose.model("Owner", userSchema);
 
 
 module.exports =  User  
-  
+// module.exports = Owner
+// module.exports = {
+//   User,
+//   Owner
+// };
+ 
 // };
 
 
